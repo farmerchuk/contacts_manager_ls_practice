@@ -21,7 +21,7 @@
     <div id="search">
       <label>
         Search
-        <input type="text" name="search-query">
+        <input type="text" name="search-query" placeholder="name or tag">
       </label>
 
     </div>
@@ -92,7 +92,7 @@
         <h3>Tags:</h3>
         <ul class="tags">
           {{#each tags}}
-            <li>{{this}}</li>
+            <li class="tag">{{this}}</li>
           {{/each}}
         </ul>
       </li>
