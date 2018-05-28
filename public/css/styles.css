@@ -1,0 +1,50 @@
+fieldset {
+  border: none;
+  padding: 0 0 10px 0;
+  margin: 0;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+h3 {
+  margin-bottom: 5px;
+  margin-top: 10px;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  padding-bottom: 20px;
+}
+
+button {
+  cursor: pointer;
+}
+
+#search {
+  padding-bottom: 10px;
+}
+
+#contact-form {
+  display: none;
+}
+
+.contact {
+  padding-bottom: 20px;
+}
+
+.contact .tags li {
+  display: inline-block;
+  border: 1px solid #dadada;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  text-transform: capitalize;
+}

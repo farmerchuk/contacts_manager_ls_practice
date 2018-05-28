@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script type="text/javascript" src="/javascripts/jquery.js"></script>
+  <script type="text/javascript" src="/javascripts/handlebars.js"></script>
+  <script type="text/javascript" src="/javascripts/app.js"></script>
+</head>
+
+<body>
+
+  <header>
+
+    <h1>Contact Manager</h1>
+
+    <div id="search">
+      <label>
+        Search
+        <input type="text" name="search-query">
+      </label>
+
+    </div>
+
+    <div id="add-contact-btn">
+      <button name="add-contact-btn">Add Contact</button>
+    </div>
+
+  </header>
+
+  <main>
+
+    <form id="contact-form">
+      <fieldset>
+        <ul>
+
+          <li>
+            <label>
+              Full name:
+              <input type="text" name="full_name">
+            </label>
+          </li>
+
+          <li>
+            <label>
+              Email address:
+              <input type="email" name="email">
+            </label>
+          </li>
+
+          <li>
+            <label>
+              Phone number:
+              <input type="tel" name="phone_number">
+            </label>
+          </li>
+
+          <li>
+            <label>
+              Tags:
+              <input type="text" name="tags">
+            </label>
+          </li>
+
+        </ul>
+      </fieldset>
+
+      <button type="submit" name="submit">Submit</button>
+      <button type="reset" name="cancel">Cancel</button>
+    </form>
+
+    <ul id="contacts">
+
+    </ul>
+
+  </main>
+
+  <!-- Handlebars templates -->
+
+  <script type="text/x-handlebars" id="contact-template">
+    {{#each contacts}}
+      <li class="contact">
+        <h2>{{full_name}}</h2>
+        <h3>Phone Number:</h3>
+        <p>{{phone_number}}</p>
+        <h3>Email:</h3>
+        <p>{{email}}</p>
+        <h3>Tags:</h3>
+        <ul class="tags">
+          {{#each tags}}
+            <li>{{this}}</li>
+          {{/each}}
+        </ul>
+      </li>
+    {{/each}}
+  </script>
+
+</body>
+
+</html>
