@@ -1,61 +1,76 @@
-$(function() {
+const contactManager = {
+  $contacts: $('#contacts'),
+  $addContactBtn: $('#add-contact-btn'),
+  $contactForm: $('#contact-form'),
 
-  const $contacts = $('#contacts');
-  const $addContactBtn = $('#add-contact-btn');
-  const $contactForm = $('#contact-form');
+  contactTemplate: Handlebars.compile($('#contact-template').html()),
 
-  const contactTemplate = Handlebars.compile($('#contact-template').html());
+  renderContacts() {
+    $.ajax({
+      method: 'GET',
+      url: '/api/contacts',
+      dataType: 'json',
+      success: function(json) {
+        this.showContacts(json);
+      }.bind(this),
+    });
+  },
 
-  $.ajax({
-    method: 'GET',
-    url: '/api/contacts',
-    dataType: 'json',
-    success: function(response) {
-      let contactsHtml;
+  showContacts(response) {
+    let contactsHtml;
 
-      response.forEach(contact => contact.tags = contact.tags.split(','));
-      contactsHtml = contactTemplate({contacts: response})
-      $contacts.html(contactsHtml);
-    }
-  });
+    response.forEach(contact => contact.tags = contact.tags.split(','));
+    contactsHtml = this.contactTemplate({contacts: response});
+    this.$contacts.html(contactsHtml);
+  },
 
-  $addContactBtn.on('click', 'button', function(e) {
+  bindEvents() {
+    this.$addContactBtn.on('click', 'button', this.toggleNewContactForm.bind(this));
+    this.$contactForm.on('click', 'button[name="cancel"]', this.closeNewContactForm.bind(this));
+    this.$contactForm.on('submit', this.submitNewContactForm.bind(this));
+  },
+
+  toggleNewContactForm(e) {
     e.preventDefault();
-    $contactForm.slideToggle();
-  });
+    this.$contactForm.slideToggle();
+  },
 
-  $contactForm.on('click', 'button[name="cancel"]', function(e) {
-    $contactForm.slideUp();
-  });
-
-  $contactForm.on('submit', function(e) {
+  closeNewContactForm(e) {
     e.preventDefault();
-    data = $contactForm.serializeArray();
-    formatTags(data);
-    json = jsonize(data);
+
+    this.$contactForm.get(0).reset();
+    this.$contactForm.slideUp();
+  },
+
+  submitNewContactForm(e) {
+    e.preventDefault();
+
+    const $tagsInput = this.$contactForm.find('input[name="tags"]');
+    const tags = $tagsInput.val();
+    const formattedTags = this.formatTags(tags);
+
+    $tagsInput.val(formattedTags);
 
     $.ajax({
       method: 'POST',
       url: '/api/contacts',
-      contentType: 'application/json',
       dataType: 'json',
-      data: json,
+      data: this.$contactForm.serialize(),
+      success: function(json) {
+        this.renderContacts();
+        this.closeNewContactForm();
+      }.bind(this),
     });
-  });
+  },
 
-  function formatTags(data) {
-    const tagsObj = data.find(field => field.name === 'tags');
-    tagsObj.value = tagsObj.value.replace(/\W/g, ' ').trim().split(/ +/).join(',');
-  }
+  formatTags(tags) {
+    return tags.replace(/\W/g, ' ').trim().split(/ +/).join(',');
+  },
 
-  function jsonize(data) {
-    const newObj = {}
+  init() {
+    this.bindEvents();
+    this.renderContacts();
+  },
+}
 
-    newObj.full_name = data.find(field => field.name === 'full_name').value;
-    newObj.phone_number = data.find(field => field.name === 'phone_number').value;
-    newObj.email = data.find(field => field.name === 'email').value;
-    newObj.tags = data.find(field => field.name === 'tags').value;
-
-    return JSON.stringify(newObj);
-  }
-});
+contactManager.init();
