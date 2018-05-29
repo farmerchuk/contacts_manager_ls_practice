@@ -18,12 +18,11 @@ const contactManager = {
   },
 
   showContacts(contacts, query) {
-    let contactsHtml;
-
     if (query) contacts = this.filterContacts(contacts, query);
 
     contacts.forEach(contact => contact.tags = contact.tags.split(','));
-    contactsHtml = this.contactTemplate({contacts: contacts});
+
+    let contactsHtml = this.contactTemplate({contacts: contacts});
     this.$contacts.html(contactsHtml);
   },
 
@@ -81,11 +80,13 @@ const contactManager = {
       method: this.contactFormMethod,
       url: this.contactFormPath,
       data: this.$contactForm.serialize(),
-      success: function() {
-        this.renderContacts();
-        this.closeContactForm();
-      }.bind(this),
+      success: renderContactsAndCloseForm.bind(this),
     });
+  },
+
+  renderContactsAndCloseForm() {
+    this.renderContacts();
+    this.closeContactForm();
   },
 
   getFormattedTagsFromContactForm() {
@@ -109,7 +110,7 @@ const contactManager = {
   submitTagSearch(e) {
     e.preventDefault();
     const tag = e.target.textContent;
-    
+
     this.renderContacts(tag);
   },
 
