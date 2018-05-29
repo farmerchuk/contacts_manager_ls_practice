@@ -3,80 +3,96 @@ const contactManager = {
   $addContactBtn: $('#add-contact-btn'),
   $contactForm: $('#contact-form'),
   $searchQuery: $('#search input'),
+  contactFormPath: '',
+  contactFormMethod: '',
 
   contactTemplate: Handlebars.compile($('#contact-template').html()),
 
   renderContacts(...args) {
-    const query = args[0];
-
     $.ajax({
       method: 'GET',
       url: '/api/contacts',
       dataType: 'json',
-      success: function(json) {
-        this.showContacts(json, query);
-      }.bind(this),
+      success: contacts => this.showContacts(contacts, args[0]),
     });
   },
 
-  showContacts(json, query) {
+  showContacts(contacts, query) {
     let contactsHtml;
-    let filteredContacts = json;
 
-    if (query) {
-      query = query.toLowerCase();
+    if (query) contacts = this.filterContacts(contacts, query);
 
-      filteredContacts = filteredContacts.filter(function(contact) {
-        let name = contact.full_name.toLowerCase();
-        let tags = contact.tags.toLowerCase();
-        return !!name.match(query) || !!tags.match(query);
-      });
-    }
-
-    filteredContacts.forEach(contact => contact.tags = contact.tags.split(','));
-    contactsHtml = this.contactTemplate({contacts: filteredContacts});
+    contacts.forEach(contact => contact.tags = contact.tags.split(','));
+    contactsHtml = this.contactTemplate({contacts: contacts});
     this.$contacts.html(contactsHtml);
   },
 
+  filterContacts(contacts, query) {
+    query = query.toLowerCase();
+
+    return contacts.filter(function(contact) {
+      let name = contact.full_name.toLowerCase();
+      let tags = contact.tags.toLowerCase();
+
+      return !!name.match(query) || !!tags.match(query);
+    });
+  },
+
   bindEvents() {
-    this.$addContactBtn.on('click', 'button', this.toggleNewContactForm.bind(this));
-    this.$contactForm.on('click', 'button[name="cancel"]', this.closeNewContactForm.bind(this));
-    this.$contactForm.on('submit', this.submitNewContactForm.bind(this));
+    this.$addContactBtn.on('click', this.openNewContactForm.bind(this));
+    this.$contactForm.on('click', 'button[name="cancel"]', this.closeContactForm.bind(this));
+    this.$contactForm.on('submit', this.submitContactForm.bind(this));
     this.$searchQuery.on('input', this.submitSearch.bind(this));
     this.$contacts.on('click', 'li.tag', this.submitTagSearch.bind(this));
+    this.$contacts.on('click', 'form[method="put"]', this.editContact.bind(this));
+    this.$contacts.on('click', 'form[method="delete"]', this.deleteContact.bind(this));
   },
 
-  toggleNewContactForm(e) {
-    e.preventDefault();
-    this.$contactForm.slideToggle();
+  setContactFormPathAndMethod(path, method) {
+    this.contactFormPath = path;
+    this.contactFormMethod = method;
   },
 
-  closeNewContactForm(e) {
+  clearContactFormPathAndMethod() {
+    this.setContactFormPathAndMethod('', '');
+  },
+
+  openNewContactForm(e) {
     e.preventDefault();
 
+    this.setContactFormPathAndMethod('/api/contacts', 'post');
+    this.$contactForm.slideDown();
+  },
+
+  closeContactForm() {
     this.$contactForm.get(0).reset();
+    this.clearContactFormPathAndMethod();
+    this.$addContactBtn.html('Add Contact');
     this.$contactForm.slideUp();
   },
 
-  submitNewContactForm(e) {
+  submitContactForm(e) {
     e.preventDefault();
+    const formattedTags = this.getFormattedTagsFromContactForm();
 
-    const $tagsInput = this.$contactForm.find('input[name="tags"]');
-    const tags = $tagsInput.val();
-    const formattedTags = this.formatTags(tags);
-
-    $tagsInput.val(formattedTags);
+    this.$contactForm.find('input[name="tags"]').val(formattedTags);
 
     $.ajax({
-      method: 'POST',
-      url: '/api/contacts',
-      dataType: 'json',
+      method: this.contactFormMethod,
+      url: this.contactFormPath,
       data: this.$contactForm.serialize(),
-      success: function(json) {
+      success: function() {
         this.renderContacts();
-        this.closeNewContactForm();
+        this.closeContactForm();
       }.bind(this),
     });
+  },
+
+  getFormattedTagsFromContactForm() {
+    const $tagsInput = this.$contactForm.find('input[name="tags"]');
+    const tags = $tagsInput.val();
+
+    return this.formatTags(tags);
   },
 
   formatTags(tags) {
@@ -86,13 +102,52 @@ const contactManager = {
   submitSearch(e) {
     e.preventDefault();
     const query = this.$searchQuery.val();
+
     this.renderContacts(query);
   },
 
   submitTagSearch(e) {
     e.preventDefault();
     const tag = e.target.textContent;
+    
     this.renderContacts(tag);
+  },
+
+  editContact(e) {
+    e.preventDefault();
+    const path = $(e.target).closest('form').attr('action');
+
+    this.setContactFormPathAndMethod(path, 'put');
+    this.populateContactFormFields(path);
+    this.$addContactBtn.html('Edit Contact');
+    this.$contactForm.slideDown();
+  },
+
+  deleteContact(e) {
+    e.preventDefault();
+    const path = $(e.target).closest('form').attr('action');
+
+    $.ajax({
+      method: 'delete',
+      url: path,
+      success: () => this.renderContacts(),
+    });
+  },
+
+  populateContactFormFields(path) {
+    $.ajax({
+      method: 'get',
+      url: path,
+      dataType: 'json',
+      success: json => this.updateFields(json),
+    });
+  },
+
+  updateFields(json) {
+    this.$contactForm.find('input[name="full_name"]').val(json.full_name);
+    this.$contactForm.find('input[name="phone_number"]').val(json.phone_number);
+    this.$contactForm.find('input[name="email"]').val(json.email);
+    this.$contactForm.find('input[name="tags"]').val(json.tags);
   },
 
   init() {

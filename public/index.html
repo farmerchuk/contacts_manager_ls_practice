@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
   <link rel="stylesheet" href="/css/styles.css">
   <script type="text/javascript" src="/javascripts/jquery.js"></script>
   <script type="text/javascript" src="/javascripts/handlebars.js"></script>
@@ -20,15 +21,12 @@
 
     <div id="search">
       <label>
-        Search
-        <input type="text" name="search-query" placeholder="name or tag">
+        <input type="text" name="search-query" placeholder="Search name or tag">
       </label>
 
     </div>
 
-    <div id="add-contact-btn">
-      <button name="add-contact-btn">Add Contact</button>
-    </div>
+    <button id="add-contact-btn" name="add-contact-btn">Add Contact</button>
 
   </header>
 
@@ -40,29 +38,29 @@
 
           <li>
             <label>
-              Full name:
-              <input type="text" name="full_name">
+              <span>Full name:</span>
+              <input type="text" name="full_name" required>
             </label>
           </li>
 
           <li>
             <label>
-              Email address:
-              <input type="email" name="email">
+              <span>Email address:</span>
+              <input type="email" name="email" required>
             </label>
           </li>
 
           <li>
             <label>
-              Phone number:
-              <input type="tel" name="phone_number">
+              <span>Phone number:</span>
+              <input type="tel" name="phone_number" required>
             </label>
           </li>
 
           <li>
             <label>
-              Tags:
-              <input type="text" name="tags">
+              <span>Tags:</span>
+              <input type="text" name="tags" required>
             </label>
           </li>
 
@@ -84,6 +82,13 @@
   <script type="text/x-handlebars" id="contact-template">
     {{#each contacts}}
       <li class="contact">
+        <form action="/api/contacts/{{id}}" method="put">
+          <a class="icon fas fa-edit"></a>
+        </form>
+        <form action="/api/contacts/{{id}}" method="delete">
+          <a class="icon fas fa-trash-alt"></a>
+        </form>
+
         <h2>{{full_name}}</h2>
         <h3>Phone Number:</h3>
         <p>{{phone_number}}</p>
